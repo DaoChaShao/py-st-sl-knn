@@ -5,6 +5,9 @@
 
 ### Features
 
+- implement selection cleaning and data preprocessing functionality in train.py ([43a45e9](https://github.com///commit/43a45e9a3a1957d82c9299366fac162fbfe1acb2))
+- add multiple_selection_cleaner function to clean selection lists ([e071258](https://github.com///commit/e071258b2de2cbe978db67941065c9c75646a6de))
+- update CHANGELOG.md with recent feature additions ([5067204](https://github.com///commit/50672043657e94e83febba0c387f2a6dd52aea74))
 - add initial train.py script with metadata ([7e31f0b](https://github.com///commit/7e31f0be3da7cfc955ca53ed0618518ca3a9d541))
 - implement data loading and preparation functionality ([57cbf84](https://github.com///commit/57cbf84a49656f3a73885005b607313e4cd0eaac))
 - add model training page to navigation ([fa30192](https://github.com///commit/fa30192b8f7df0bb5c680cf4c0025d0b3860c3de))
@@ -25,4 +28,8 @@
 - add initial __init__.py with main function ([ede3f4c](https://github.com///commit/ede3f4c80fcd6dcb53f705a6c9785cc6b021bd34))
 - add .gitignore to exclude IDE and environment files ([03d11ab](https://github.com///commit/03d11ab67947bc10d43fb5f1224f5f7902fedd1d))
 - add .gitignore to exclude IDE files and environment settings ([980e398](https://github.com///commit/980e398bbe86614a0ea9a3e9e68f9ebe6309f813))
+
+### Bug Fixes
+
+- rename empty_table to empty_tables for consistency in preparation.py ([622c48e](https://github.com///commit/622c48e44e4a8c98a34ec08c4ccff054b5ea047b))
 
