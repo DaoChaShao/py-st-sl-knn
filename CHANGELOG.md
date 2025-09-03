@@ -5,6 +5,10 @@
 
 ### Features
 
+- add initial train.py script with metadata ([7e31f0b](https://github.com///commit/7e31f0be3da7cfc955ca53ed0618518ca3a9d541))
+- implement data loading and preparation functionality ([57cbf84](https://github.com///commit/57cbf84a49656f3a73885005b607313e4cd0eaac))
+- add model training page to navigation ([fa30192](https://github.com///commit/fa30192b8f7df0bb5c680cf4c0025d0b3860c3de))
+- add CHANGELOG.md for version 0.1.0 and project updates ([1968356](https://github.com///commit/19683567b0ebd1243e4254494d48486901988a04))
 - add train data ([355e7c3](https://github.com///commit/355e7c3ebd8a5c9c3dbd3acee81374324a80e063))
 - add test segmentation data ([78c5b03](https://github.com///commit/78c5b03cfcaa700921055e0910062e977d4580dd))
 - add test data ([93dd4cc](https://github.com///commit/93dd4ccb4ce4e4483a67f4da9cb8de717a37dfda))
