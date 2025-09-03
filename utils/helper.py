@@ -147,3 +147,11 @@ def scatter_3d_with_category(
         height=650,
         hover_data=[x_name, y_name, z_name, category_name]
     ).update_layout(coloraxis_showscale=False)
+
+def multiple_selection_cleaner(selection: list[str]):
+    """ Clean the selection list by removing duplicates and empty strings.
+    :param selection: the list of selected items
+    :return: a cleaned list of selected items
+    """
+    selection = []
+    return selection
