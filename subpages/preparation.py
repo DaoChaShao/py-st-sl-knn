@@ -13,7 +13,7 @@ from streamlit import (empty, sidebar, subheader, session_state, button,
 from utils.helper import Timer
 
 empty_messages: empty = empty()
-empty_table: empty = empty()
+empty_tables: empty = empty()
 
 for key in ["train", "timer"]:
     session_state.setdefault(key, None)
@@ -32,7 +32,7 @@ with sidebar:
             rerun()
     else:
         empty_messages.success(f"{session_state.timer} Data Preparation is complete.")
-        empty_table.data_editor(
+        empty_tables.data_editor(
             session_state.train,
             hide_index=True, disabled=True, width="stretch",
         )
