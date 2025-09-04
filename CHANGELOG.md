@@ -5,6 +5,7 @@
 
 ### Features
 
+- update feature selection handling to utilize session state in train.py ([43e6af8](https://github.com///commit/43e6af89bc0733e0ca75dd510b1b8a7373f7fe77))
 - implement KNN model training and enhance session state management in train.py ([d17ae87](https://github.com///commit/d17ae875ba9781721e89340e1ac80978f7a50407))
 - update data loading and preparation functionality in preparation.py ([18784cb](https://github.com///commit/18784cb98f4d6a9fc0be867bdf35977653421f20))
 - enhance data visualization and preprocessing capabilities in helper.py ([982475b](https://github.com///commit/982475b9c5efccbe53635f4adb7614ddcdfd1d0a))
@@ -38,5 +39,6 @@
 
 ### Chore
 
+- update CHANGELOG.md to reflect recent feature additions and improvements ([130baa9](https://github.com///commit/130baa9c1b52aebd596366aaa3a2d46a8ef616e1))
 - update CHANGELOG.md to include recent feature and bug fix entries ([b42b467](https://github.com///commit/b42b46795f7af752796596a6cdc647b830d0a7df))
 
