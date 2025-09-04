@@ -7,96 +7,118 @@
 # @Desc     :
 
 from pandas import DataFrame
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.metrics import accuracy_score
+from sklearn.neighbors import KNeighborsClassifier
 from streamlit import (empty, sidebar, subheader, session_state, selectbox,
-                       multiselect, button, rerun)
+                       multiselect, button, rerun, columns, metric)
 
-from utils.helper import Timer
+from utils.helper import Timer, data_preprocessor
 
 
 def selection_cleaner():
     session_state.selected = []
-    session_state.X = None
+    session_state.x_train = None
+    session_state.y_train = None
 
 
 empty_messages: empty = empty()
-empty_tables: empty = empty()
+left, _ = columns(2, gap="large")
+empty_charts: empty = empty()
+empty_train_title: empty = empty()
+empty_train_table: empty = empty()
+empty_test_title: empty = empty()
+empty_test_table: empty = empty()
+empty_test_labels_title: empty = empty()
+empty_test_labels_table: empty = empty()
 
-for key in ["train", "timer", "selected_train", "X"]:
+for key in [
+    "raw_train", "raw_test", "raw_y_test", "timer",
+    "selected_train", "selected_test",
+    "x_train", "x_test",
+    "KNN"
+]:
     session_state.setdefault(key, None)
 for key in ["selected"]:
     session_state.setdefault(key, [])
 
 with sidebar:
-    if session_state.train is None:
+    if session_state.raw_train is None:
         empty_messages.error("Please upload the dataset first on the Data Preparation page.")
     else:
         empty_messages.info(f"{session_state.timer} Model Training is complete.")
         subheader("Model Training Settings")
 
-        cols: list[str] = session_state.train.columns.tolist()
+        cols_raw_train: list[str] = session_state.raw_train.columns.tolist()
+        cols_raw_test: list[str] = session_state.raw_test.columns.tolist()
+        cols_raw_y_test: list[str] = session_state.raw_y_test.columns.tolist()
+
         ids: str = selectbox(
             "Select the target feature to drop (for prediction)",
-            cols, index=0, disabled=True, width="stretch",
+            cols_raw_train, index=0, disabled=True, width="stretch",
             help="Select the target feature to drop (for prediction)",
         )
-        cols.remove(ids)
+        cols_raw_train.remove(ids)
+        cols_raw_test.remove(ids)
+        cols_raw_y_test.remove(ids)
 
-        categories: str = selectbox(
+        seg_name: str = selectbox(
             "Select the target feature to drop (for prediction)",
-            cols, index=len(cols) - 1, disabled=True, width="stretch",
+            cols_raw_train, index=len(cols_raw_train) - 1, disabled=True, width="stretch",
             help="Select the target feature to drop (for prediction)",
         )
-        cols.remove(categories)
+        cols_raw_train.remove(seg_name)
 
-        empty_tables.data_editor(session_state.train, hide_index=True, disabled=True, width="stretch")
+        cut_train: DataFrame = session_state.raw_train[cols_raw_train]
+        cut_test: DataFrame = session_state.raw_test[cols_raw_test]
+        y_test: DataFrame = session_state.raw_y_test[cols_raw_y_test]
+        empty_train_title.markdown(f"### Training Data {cut_train.shape}")
+        empty_train_table.data_editor(cut_train, hide_index=True, disabled=True, width="stretch")
+        empty_test_title.markdown(f"### Testing Data {cut_test.shape}")
+        empty_test_table.data_editor(cut_test, hide_index=True, disabled=True, width="stretch")
+        empty_test_labels_title.markdown(f"### Testing Data Labels {y_test.shape}")
+        empty_test_labels_table.data_editor(y_test, hide_index=True, disabled=True, width="stretch")
 
         selection: list[str] = multiselect(
             "Select the features to use for training",
-            cols, width="stretch",
+            cols_raw_train, width="stretch",
             key="selected",
             help="Select the features to use for training",
         )
 
-        session_state["selected_train"] = session_state["train"][selection]
+        session_state["selected_train"] = cut_train[selection]
+        session_state["selected_test"] = cut_test[selection]
 
         if len(selection) < 2:
             empty_messages.warning("Please select at least two feature for training.")
         else:
             empty_messages.info(f"{len(selection)} features selected.")
 
-            cols_num = session_state["selected_train"].select_dtypes(include=["int64", "float64"]).columns.tolist()
-            cols_type = session_state["selected_train"].select_dtypes(include=["object", "category"]).columns.tolist()
-            # print(f"The cols filed with number: {cols_num}")
-            # print(f"The cols filled with category: {cols_type}")
+            session_state["x_train"]: DataFrame = data_preprocessor(session_state.selected_train)
+            empty_train_table.data_editor(session_state.x_train, hide_index=True, disabled=True, width="stretch")
+            session_state["x_test"]: DataFrame = data_preprocessor(session_state.selected_test)
+            empty_test_table.data_editor(session_state.x_test, hide_index=True, disabled=True, width="stretch")
 
-            # Establish a pipe to process numerical features
-            pipe_num = Pipeline(steps=[
-                ("imputer", SimpleImputer(strategy="median")),
-                ("scaler", StandardScaler()),
-            ])
-            # Establish a pipe to process categorical features
-            pipe_type = Pipeline(steps=[
-                ("imputer", SimpleImputer(strategy="most_frequent")),
-                ("encoder", OneHotEncoder(handle_unknown="ignore"))
-            ])
-            # Establish a column transformer to process numerical and categorical features
-            preprocessor = ColumnTransformer(transformers=[
-                ("number", pipe_num, cols_num),
-                ("category", pipe_type, cols_type)
-            ])
-            # Fit and transform the data
-            processed = preprocessor.fit_transform(session_state.selected_train)
-            # Due to the OneHotEncoder, the feature names will be obtained throughout
-            cols_name_type = preprocessor.named_transformers_["category"]["encoder"].get_feature_names_out(cols_type)
-            cols_names: list[str] = cols_num + cols_name_type.tolist()
+            y_train = session_state["raw_train"][seg_name]
 
-            # Convert the processed data to a DataFrame
-            session_state["X"] = DataFrame(processed, columns=cols_names)
-            # print(session_state.X)
-            empty_tables.data_editor(session_state.X, hide_index=True, disabled=True, width="stretch")
+            if session_state["KNN"] is None:
+                if button("Start Training", type="primary", width="stretch"):
+                    with Timer("Model Training") as t:
+                        # 3 means the 3 nearest neighbours
+                        session_state["KNN"] = KNeighborsClassifier(n_neighbors=3)
+                        session_state["KNN"].fit(session_state.x_train, y_train)
+
+                    session_state["timer"] = t
+                    rerun()
+            else:
+                empty_messages.success(f"{session_state.timer} Model Training is complete.")
+                y_pre = session_state["KNN"].predict(session_state.x_test)
+                acc = accuracy_score(y_test, y_pre)
+                percentage = round(acc * 100, 1)
+
+                with left:
+                    metric("Accuracy Score", f"{acc:.2%}", delta=f"{percentage - 100:.4f} %", delta_color="normal")
+
+                button("Clear the Model", type="secondary", width="stretch", on_click=selection_cleaner)
+                session_state["KNN"] = None
 
             button("Clear the Data", type="secondary", width="stretch", on_click=selection_cleaner)
