@@ -1,10 +1,13 @@
 <!-- insertion marker -->
 <a name="0.1.0"></a>
 
-## [0.1.0](https://github.com///compare/20ab7f5cddc75ae1f417db791046b91c6163d27b...0.1.0) (2025-09-03)
+## [0.1.0](https://github.com///compare/20ab7f5cddc75ae1f417db791046b91c6163d27b...0.1.0) (2025-09-04)
 
 ### Features
 
+- implement KNN model training and enhance session state management in train.py ([d17ae87](https://github.com///commit/d17ae875ba9781721e89340e1ac80978f7a50407))
+- update data loading and preparation functionality in preparation.py ([18784cb](https://github.com///commit/18784cb98f4d6a9fc0be867bdf35977653421f20))
+- enhance data visualization and preprocessing capabilities in helper.py ([982475b](https://github.com///commit/982475b9c5efccbe53635f4adb7614ddcdfd1d0a))
 - implement selection cleaning and data preprocessing functionality in train.py ([43a45e9](https://github.com///commit/43a45e9a3a1957d82c9299366fac162fbfe1acb2))
 - add multiple_selection_cleaner function to clean selection lists ([e071258](https://github.com///commit/e071258b2de2cbe978db67941065c9c75646a6de))
 - update CHANGELOG.md with recent feature additions ([5067204](https://github.com///commit/50672043657e94e83febba0c387f2a6dd52aea74))
@@ -32,4 +35,8 @@
 ### Bug Fixes
 
 - rename empty_table to empty_tables for consistency in preparation.py ([622c48e](https://github.com///commit/622c48e44e4a8c98a34ec08c4ccff054b5ea047b))
+
+### Chore
+
+- update CHANGELOG.md to include recent feature and bug fix entries ([b42b467](https://github.com///commit/b42b46795f7af752796596a6cdc647b830d0a7df))
 
