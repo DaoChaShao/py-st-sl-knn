@@ -81,9 +81,10 @@ with sidebar:
         selection: list[str] = multiselect(
             "Select the features to use for training",
             cols_raw_train, width="stretch",
-            key="selected",
+            default=session_state.selected,
             help="Select the features to use for training",
         )
+        session_state["selected"] = selection
 
         session_state["selected_train"] = cut_train[selection]
         session_state["selected_test"] = cut_test[selection]
