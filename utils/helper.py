@@ -9,6 +9,11 @@
 from numpy.random import random as random_seed, get_state, set_state
 from pandas import DataFrame
 from plotly.express import scatter, scatter_3d
+from sklearn.compose import ColumnTransformer
+from sklearn.decomposition import PCA
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from time import perf_counter
 
 
@@ -73,85 +78,87 @@ class SeedSetter(object):
         return f"SeedSetter with seed {self._seed}"
 
 
-def scatter_2d_without_category(data: DataFrame, x_name: str, y_name: str):
-    """ Get the unique categories in the target column.
-    :param data: the DataFrame containing the data
-    :param x_name: the name of the feature column (X)
-    :param y_name: the name of the target column (Y)
-    :return: a scatter plot with different colours and symbols for each category
-    """
-    return scatter(
-        data,
-        x=x_name,
-        y=y_name,
-        hover_data=[x_name, y_name]
-    )
-
-
-def scatter_2d_with_category(data: DataFrame, x_name: str, y_name: str, category: str):
-    """ Get the unique categories in the target column.
-    :param data: the DataFrame containing the data
-    :param x_name: the name of the feature column (X)
-    :param y_name: the name of the target column (Y)
-    :param category: the name of the category column
-    :return: a scatter plot with different colours and symbols for each category
-    """
-    return scatter(
-        data,
-        x=x_name,
-        y=y_name,
-        color=category,
-        symbol=category,
-        hover_data=[x_name, y_name, category]
-    ).update_layout(coloraxis_showscale=False)
-
-
-def scatter_3d_without_category(data: DataFrame, x_name: str = "PCA-X", y_name: str = "PCA-Y", z_name: str = "PCA-Z"):
-    """ Get the unique categories in the target column.
-    :param data: the DataFrame containing the data
-    :param x_name: the name of the feature column (X), default is "PCA-X"
-    :param y_name: the name of the target column (Y), default is "PCA-Y"
-    :param z_name: the name of the target column (Z), default is "PCA-Z"
-    :return: a scatter plot with different colours and symbols for each category
-    """
-    return scatter_3d(
-        data,
-        x=x_name,
-        y=y_name,
-        z=z_name,
-        height=650,
-        hover_data=[x_name, y_name, z_name]
-    ).update_layout(coloraxis_showscale=False)
-
-
-def scatter_3d_with_category(
+def visualisation_scatter(
         data: DataFrame,
         x_name: str = "PCA-X", y_name: str = "PCA-Y", z_name: str = "PCA-Z",
-        category_name: str = "Cluster"
+        category_name: str | None = None
 ):
-    """ Get the unique categories in the target column.
+    """ Visualise the data using scatter plots.
     :param data: the DataFrame containing the data
     :param x_name: the name of the feature column (X), default is "PCA-X"
     :param y_name: the name of the target column (Y), default is "PCA-Y"
     :param z_name: the name of the target column (Z), default is "PCA-Z"
-    :param category_name: the name of the category column, default is "Cluster"
     :return: a scatter plot with different colours and symbols for each category
     """
-    return scatter_3d(
-        data,
-        x=x_name,
-        y=y_name,
-        z=z_name,
-        color=category_name,
-        symbol=category_name,
-        height=650,
-        hover_data=[x_name, y_name, z_name, category_name]
-    ).update_layout(coloraxis_showscale=False)
+    if data.shape[1] == 2:
+        fig = scatter(
+            data, x=x_name, y=y_name,
+            color=category_name,
+            symbol=category_name,
+            hover_data=[x_name, y_name]
+        )
+    elif data.shape[1] == 3:
+        fig = scatter_3d(
+            data, x=x_name, y=y_name, z=z_name,
+            color=category_name,
+            symbol=category_name,
+            hover_data=[x_name, y_name, z_name]
+        )
+    else:
+        pca = PCA(n_components=3)
+        components = pca.fit_transform(data)
+        df = DataFrame(components, columns=[x_name, y_name, z_name])
+        fig = scatter_3d(
+            df, x=x_name, y=y_name, z=z_name,
+            color=category_name,
+            symbol=category_name,
+            hover_data=[x_name, y_name, z_name]
+        )
+    return fig
 
-def multiple_selection_cleaner(selection: list[str]):
-    """ Clean the selection list by removing duplicates and empty strings.
-    :param selection: the list of selected items
-    :return: a cleaned list of selected items
+
+def data_preprocessor(selected_data: DataFrame) -> DataFrame:
+    """ Preprocess the data by handling missing values, scaling numerical features, and encoding categorical features.
+    :param selected_data: the DataFrame containing the selected features for training
+    :return: a DataFrame containing the preprocessed features
     """
-    selection = []
-    return selection
+    cols_num = selected_data.select_dtypes(include=["int64", "float64"]).columns.tolist()
+    cols_type = selected_data.select_dtypes(include=["object", "category"]).columns.tolist()
+    # print(f"The cols filed with number: {cols_num}")
+    # print(f"The cols filled with category: {cols_type}")
+
+    # Establish a pipe to process numerical features
+    pipe_num = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler", StandardScaler()),
+    ])
+
+    # Set a list of transformers for the ColumnTransformer
+    transformers = [("number", pipe_num, cols_num)]
+
+    # Establish a pipe to process categorical features
+    if cols_type:
+        pipe_type = Pipeline(steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("encoder", OneHotEncoder(handle_unknown="ignore"))
+        ])
+        transformers.append(("category", pipe_type, cols_type))
+
+    # Establish a column transformer to process numerical and categorical features
+    preprocessor = ColumnTransformer(transformers=transformers)
+    # Fit and transform the data
+    processed = preprocessor.fit_transform(selected_data)
+
+    # If the processed data is a sparse matrix, convert it to a dense array
+    if hasattr(processed, "toarray"):
+        processed = processed.toarray()
+
+    # Set the feature names for the processed data
+    cols_names: list[str] = cols_num
+    if cols_type:
+        # Due to the OneHotEncoder, the feature names will be obtained throughout
+        encoder = preprocessor.named_transformers_["category"]["encoder"]
+        cols_names += encoder.get_feature_names_out(cols_type).tolist()
+
+    # Convert the processed data to a DataFrame
+    return DataFrame(processed, columns=cols_names)
