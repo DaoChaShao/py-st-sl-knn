@@ -8,7 +8,24 @@
 This application is built on the [Customer Segmentation dataset](https://www.kaggle.com/datasets/vetrirah/customer) from
 Kaggle. It applies the **K-Nearest Neighbours (KNN)** algorithm from **scikit-learn** for supervised learning tasks. The
 interactive interface is developed using **Streamlit**, while **Plotly** is used for rich and dynamic data
-visualisation, enabling users to explore customer features, model training, and prediction outcomes.
+visualisation. It allows preprocessing, scaling, and encoding of data, and visualises both the true and predicted labels
+in interactive 2D or 3D scatter plots.
+
+**FEATURES**
+---
+
+- **Interactive Data Selection**  
+  Select features for training dynamically, drop target columns, and inspect the dataset before model training.
+- **Data Preprocessing**  
+  Automatically handles missing values, scales numerical features, and encodes categorical features.
+- **KNN Model Training**  
+  Train a KNN classifier with customizable neighbours and instantly evaluate training accuracy.
+- **Dynamic Visualization**  
+  Visualise high-dimensional data in 2D or 3D scatter plots. Automatically applies PCA for dimensions > 3.
+- **True vs Predicted Labels**  
+  Compare the true labels and predicted labels side by side with consistent colouring and symbols.
+- **Streamlit-based Interactive UI**  
+  Easy-to-use sidebar controls, tables, and charts for a smooth user experience.
 
 **DATA DESCRIPTION**
 ---
@@ -50,23 +67,6 @@ visualisation, enabling users to explore customer features, model training, and 
 
 - `Test.csv` lacks `Segmentation`. After training your KNN model, run predictions on `Test.csv` and save the results in
   the same layout as `sample_submission.csv` for evaluation or submission.
-
-**FEATURES**
-
-- **Data Exploration & Cleaning**  
-  Load and preview customer data with basic preprocessing support.
-
-- **Feature Selection & Modeling**  
-  Choose feature combinations and train a KNN model for classification.
-
-- **Interactive Visualization**  
-  Visualise customer distribution, segmentation results, and model performance using Plotly.
-
-- **Model Parameter Tuning**  
-  Adjust KNN parameters (e.g., number of neighbours `k`, distance metrics) and observe prediction changes in real time.
-
-- **Result Interpretation**  
-  Present intuitive charts and evaluation metrics to understand segmentation patterns effectively.
 
 **WEB DEVELOPMENT**
 ---
