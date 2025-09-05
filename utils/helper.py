@@ -4,8 +4,8 @@
 # @Author   :   Shawn
 # @Version  :   Version 0.1.0
 # @File     :   helper.py
-# @Desc     :   
-
+# @Desc     :
+from numpy.ma.core import shape
 from numpy.random import random as random_seed, get_state, set_state
 from pandas import DataFrame
 from plotly.express import scatter, scatter_3d
@@ -78,46 +78,59 @@ class SeedSetter(object):
         return f"SeedSetter with seed {self._seed}"
 
 
-def visualisation_scatter(
-        data: DataFrame,
-        x_name: str = "PCA-X", y_name: str = "PCA-Y", z_name: str = "PCA-Z",
-        category_name: str | None = None
-):
+def visualisation_scatter(data: DataFrame, categories: DataFrame):
     """ Visualise the data using scatter plots.
     :param data: the DataFrame containing the data
-    :param x_name: the name of the feature column (X), default is "PCA-X"
-    :param y_name: the name of the target column (Y), default is "PCA-Y"
-    :param z_name: the name of the target column (Z), default is "PCA-Z"
+    :param categories: the DataFrame containing the categories for colouring and symbolising the data points
     :return: a scatter plot with different colours and symbols for each category
     """
-    if data.shape[1] == 2:
+    if categories is not None:
+        df = data.join(categories)
+        category_name = categories.columns[0]
+    else:
+        df = data
+        category_name = None
+
+    cols = data.columns.tolist()
+    dimensions = data.shape[1]
+
+    if dimensions == 2:
         fig = scatter(
-            data, x=x_name, y=y_name,
+            df,
+            x=cols[0],
+            y=cols[1],
             color=category_name,
             symbol=category_name,
-            hover_data=[x_name, y_name]
+            hover_data=[cols[0], cols[1], category_name]
         )
-    elif data.shape[1] == 3:
+    elif dimensions == 3:
         fig = scatter_3d(
-            data, x=x_name, y=y_name, z=z_name,
+            df,
+            x=cols[0],
+            y=cols[1],
+            z=cols[2],
             color=category_name,
             symbol=category_name,
-            hover_data=[x_name, y_name, z_name]
+            hover_data=[cols[0], cols[1], cols[2], category_name]
         )
     else:
         pca = PCA(n_components=3)
         components = pca.fit_transform(data)
-        df = DataFrame(components, columns=[x_name, y_name, z_name])
+        data = DataFrame(components, columns=["PAC-X", "PAC-Y", "PAC-Z"])
+        df = data.join(categories) if categories is not None else data
         fig = scatter_3d(
-            df, x=x_name, y=y_name, z=z_name,
+            df,
+            x="PAC-X",
+            y="PAC-Y",
+            z="PAC-Z",
             color=category_name,
             symbol=category_name,
-            hover_data=[x_name, y_name, z_name]
+            hover_data=["PAC-X", "PAC-Y", "PAC-Z", category_name]
         )
     return fig
 
 
-def data_preprocessor(selected_data: DataFrame) -> DataFrame:
+def data_preprocessor(selected_data: DataFrame) -> tuple[DataFrame, StandardScaler]:
     """ Preprocess the data by handling missing values, scaling numerical features, and encoding categorical features.
     :param selected_data: the DataFrame containing the selected features for training
     :return: a DataFrame containing the preprocessed features
@@ -161,4 +174,4 @@ def data_preprocessor(selected_data: DataFrame) -> DataFrame:
         cols_names += encoder.get_feature_names_out(cols_type).tolist()
 
     # Convert the processed data to a DataFrame
-    return DataFrame(processed, columns=cols_names)
+    return DataFrame(processed, columns=cols_names), preprocessor.named_transformers_["number"]["scaler"]
