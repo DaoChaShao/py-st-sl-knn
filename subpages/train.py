@@ -10,33 +10,27 @@ from pandas import DataFrame
 from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from streamlit import (empty, sidebar, subheader, session_state, selectbox,
-                       multiselect, button, rerun, columns, metric)
+                       multiselect, button, rerun, columns, metric,
+                       markdown, plotly_chart)
 
-from utils.helper import Timer, data_preprocessor
+from utils.helper import Timer, data_preprocessor, visualisation_scatter
 
 
 def selection_cleaner():
     session_state.selected = []
     session_state.x_train = None
     session_state.y_train = None
+    session_state.KNN = None
+    session_state.timer = None
 
 
 empty_messages: empty = empty()
-left, _ = columns(2, gap="large")
-empty_charts: empty = empty()
+score, _ = columns(2, gap="large")
+left, right = columns(2, gap="large")
 empty_train_title: empty = empty()
 empty_train_table: empty = empty()
-empty_test_title: empty = empty()
-empty_test_table: empty = empty()
-empty_test_labels_title: empty = empty()
-empty_test_labels_table: empty = empty()
 
-for key in [
-    "raw_train", "raw_test", "raw_y_test", "timer",
-    "selected_train", "selected_test",
-    "x_train", "x_test",
-    "KNN"
-]:
+for key in ["raw_train", "selected_train", "x_train", "timer", "KNN"]:
     session_state.setdefault(key, None)
 for key in ["selected"]:
     session_state.setdefault(key, [])
@@ -49,8 +43,6 @@ with sidebar:
         subheader("Model Training Settings")
 
         cols_raw_train: list[str] = session_state.raw_train.columns.tolist()
-        cols_raw_test: list[str] = session_state.raw_test.columns.tolist()
-        cols_raw_y_test: list[str] = session_state.raw_y_test.columns.tolist()
 
         ids: str = selectbox(
             "Select the target feature to drop (for prediction)",
@@ -58,8 +50,6 @@ with sidebar:
             help="Select the target feature to drop (for prediction)",
         )
         cols_raw_train.remove(ids)
-        cols_raw_test.remove(ids)
-        cols_raw_y_test.remove(ids)
 
         seg_name: str = selectbox(
             "Select the target feature to drop (for prediction)",
@@ -69,14 +59,8 @@ with sidebar:
         cols_raw_train.remove(seg_name)
 
         cut_train: DataFrame = session_state.raw_train[cols_raw_train]
-        cut_test: DataFrame = session_state.raw_test[cols_raw_test]
-        y_test: DataFrame = session_state.raw_y_test[cols_raw_y_test]
         empty_train_title.markdown(f"### Training Data {cut_train.shape}")
         empty_train_table.data_editor(cut_train, hide_index=True, disabled=True, width="stretch")
-        empty_test_title.markdown(f"### Testing Data {cut_test.shape}")
-        empty_test_table.data_editor(cut_test, hide_index=True, disabled=True, width="stretch")
-        empty_test_labels_title.markdown(f"### Testing Data Labels {y_test.shape}")
-        empty_test_labels_table.data_editor(y_test, hide_index=True, disabled=True, width="stretch")
 
         selection: list[str] = multiselect(
             "Select the features to use for training",
@@ -87,17 +71,14 @@ with sidebar:
         session_state["selected"] = selection
 
         session_state["selected_train"] = cut_train[selection]
-        session_state["selected_test"] = cut_test[selection]
 
         if len(selection) < 2:
             empty_messages.warning("Please select at least two feature for training.")
         else:
             empty_messages.info(f"{len(selection)} features selected.")
 
-            session_state["x_train"]: DataFrame = data_preprocessor(session_state.selected_train)
+            session_state["x_train"], scaler = data_preprocessor(session_state.selected_train)
             empty_train_table.data_editor(session_state.x_train, hide_index=True, disabled=True, width="stretch")
-            session_state["x_test"]: DataFrame = data_preprocessor(session_state.selected_test)
-            empty_test_table.data_editor(session_state.x_test, hide_index=True, disabled=True, width="stretch")
 
             y_train = session_state["raw_train"][seg_name]
 
@@ -112,14 +93,33 @@ with sidebar:
                     rerun()
             else:
                 empty_messages.success(f"{session_state.timer} Model Training is complete.")
-                y_pre = session_state["KNN"].predict(session_state.x_test)
-                acc = accuracy_score(y_test, y_pre)
-                percentage = round(acc * 100, 1)
+                y_pred = session_state["KNN"].predict(session_state.x_train)
+                acc = accuracy_score(y_train, y_pred)
+                percentage = round(acc * 100, 2)
+                with score:
+                    metric(
+                        "Training Accuracy", f"{percentage} %", delta=f"{percentage - 100:.4f} %", delta_color="normal"
+                    )
+
+                if session_state.x_train.shape[1] <= 3:
+                    x_inverse = DataFrame(
+                        scaler.inverse_transform(session_state.x_train.copy()), columns=session_state.x_train.columns
+                    )
+                else:
+                    x_inverse = session_state.x_train.copy()
+
+                # Align the index for better visualisation
+                y_true = DataFrame(y_train, index=session_state.x_train.index, columns=[seg_name])
+                y_pred = DataFrame(y_pred, index=session_state.x_train.index, columns=[seg_name])
 
                 with left:
-                    metric("Accuracy Score", f"{acc:.2%}", delta=f"{percentage - 100:.4f} %", delta_color="normal")
+                    markdown("### Testing Data - True Labels")
+                    before = visualisation_scatter(x_inverse, y_true)
+                    plotly_chart(before, use_container_width=True)
 
-                button("Clear the Model", type="secondary", width="stretch", on_click=selection_cleaner)
-                session_state["KNN"] = None
+                with right:
+                    markdown("### Testing Data - Predicted Labels")
+                    after = visualisation_scatter(x_inverse, y_pred)
+                    plotly_chart(after, use_container_width=True)
 
             button("Clear the Data", type="secondary", width="stretch", on_click=selection_cleaner)
