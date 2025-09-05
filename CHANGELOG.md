@@ -1,10 +1,17 @@
 <!-- insertion marker -->
 <a name="0.1.0"></a>
 
-## [0.1.0](https://github.com///compare/20ab7f5cddc75ae1f417db791046b91c6163d27b...0.1.0) (2025-09-04)
+## [0.1.0](https://github.com///compare/20ab7f5cddc75ae1f417db791046b91c6163d27b...0.1.0) (2025-09-05)
 
 ### Features
 
+- enhance training process in train.py by removing unused test data handling and improving accuracy visualization ([143cc4b](https://github.com///commit/143cc4b38a838523f6b8ff56af61d18cdda64fda))
+- update Chinese README.md with enhanced features and functionalities of the KNN model application ([b6ea711](https://github.com///commit/b6ea7117a1f965284e8685712e1e47b884ad3355))
+- enhance README.md with detailed features and functionalities of the KNN model application ([383cf09](https://github.com///commit/383cf09d51a788add63df0fc19b25646c99f5a92))
+- streamline data preparation by removing unused test data handling in preparation.py ([b3b6e1e](https://github.com///commit/b3b6e1e3797d4e1707635cfef0a0802b77a5329b))
+- add introductory section and information captions to home.py for KNN model app ([75e0cf0](https://github.com///commit/75e0cf0fce5795cf6d746735fa4a172815df4e07))
+- enhance visualisation_scatter function to support category DataFrame and improve data handling ([1881066](https://github.com///commit/18810663091e3e08ce4d2790f5451dc32245757f))
+- add application information section with interactive features and functionalities in about.py ([853e2fa](https://github.com///commit/853e2fa5d68c1bffeca623f4e6b81d8c2572c36c))
 - update feature selection handling to utilize session state in train.py ([43e6af8](https://github.com///commit/43e6af89bc0733e0ca75dd510b1b8a7373f7fe77))
 - implement KNN model training and enhance session state management in train.py ([d17ae87](https://github.com///commit/d17ae875ba9781721e89340e1ac80978f7a50407))
 - update data loading and preparation functionality in preparation.py ([18784cb](https://github.com///commit/18784cb98f4d6a9fc0be867bdf35977653421f20))
@@ -39,6 +46,7 @@
 
 ### Chore
 
+- update CHANGELOG.md to include recent feature additions ([247b7d1](https://github.com///commit/247b7d1905c07de40cda9acf708adf6a7c763fc1))
 - update CHANGELOG.md to reflect recent feature additions and improvements ([130baa9](https://github.com///commit/130baa9c1b52aebd596366aaa3a2d46a8ef616e1))
 - update CHANGELOG.md to include recent feature and bug fix entries ([b42b467](https://github.com///commit/b42b46795f7af752796596a6cdc647b830d0a7df))
 
